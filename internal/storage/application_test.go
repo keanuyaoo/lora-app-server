@@ -8,21 +8,22 @@ import (
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/test"
 )
 
 func TestApplication(t *testing.T) {
 	conf := test.GetConfig()
-	if err := Setup(conf); err != nil {
+	db, err := OpenDatabase(conf.PostgresDSN)
+	if err != nil {
 		t.Fatal(err)
 	}
-	nsClient := mock.NewClient()
-	networkserver.SetPool(mock.NewPool(nsClient))
+	config.C.PostgreSQL.DB = db
+	nsClient := test.NewNetworkServerClient()
+	config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 	Convey("Given a clean database with an organization, network-server and service-profile", t, func() {
-		test.MustResetDB(DB().DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
 		org := Organization{
 			Name: "test-org",
@@ -33,14 +34,14 @@ func TestApplication(t *testing.T) {
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(CreateNetworkServer(DB(), &n), ShouldBeNil)
+		So(CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := ServiceProfile{
 			Name:            "test-service-profile",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(CreateServiceProfile(DB(), &sp), ShouldBeNil)
+		So(CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 

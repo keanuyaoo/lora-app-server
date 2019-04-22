@@ -20,7 +20,6 @@
 /static/service-worker.js
 /static/manifest.json
 /static/icon.png
-/static/precache-manifest.*.js
 /ui/build
 /docs/public
 

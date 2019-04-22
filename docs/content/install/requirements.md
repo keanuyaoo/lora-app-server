@@ -4,7 +4,6 @@ menu:
     main:
         parent: install
         weight: 1
-description: Instructions how to setup the LoRa App Server requirements.
 ---
 
 # Requirements
@@ -21,11 +20,20 @@ In case you install Mosquitto, make sure you install a **recent** version.
 
 #### Debian / Ubuntu
 
+For Ubuntu Trusty (14.04), execute the following command in order to add the
+Mosquitto Apt repository, for Ubuntu Xenial and Debian Jessie you can skip
+this step:
+
+```bash
+sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+sudo apt-get update
+```
+
 In order to install Mosquitto, execute the following command:
 
-{{<highlight bash>}}
+```bash
 sudo apt-get install mosquitto
-{{< /highlight >}}
+```
 
 #### Other platforms
 
@@ -46,13 +54,13 @@ LoRa App Server database is named `loraserver_as`):
 
 Start the PostgreSQL prompt as the `postgres` user:
 
-{{<highlight bash>}}
+```bash
 sudo -u postgres psql
-{{< /highlight >}}
+```
 
 Within the PostgreSQL prompt, enter the following queries:
 
-{{<highlight sql>}}
+```sql
 -- change to the LoRa App Server database
 \c loraserver_as
 
@@ -61,7 +69,7 @@ create extension pg_trgm;
 
 -- exit the prompt
 \q
-{{< /highlight >}}
+```
 
 ### Install
 
@@ -69,9 +77,16 @@ create extension pg_trgm;
 
 To install the latest PostgreSQL:
 
-{{<highlight bash>}}
-sudo apt-get install postgresql
-{{< /highlight >}}
+```bash
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+# replace {DIST_VERSION} by the distribution version (jessie, trusty or xenial)
+sudo echo "deb http://apt.postgresql.org/pub/repos/apt/ {DIST_VERSION}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+
+sudo apt-get install postgresql-9.6
+```
+Please note that currently there are no binaries available for the Raspberry Pi at http://apt.postgresql.org/pub/repos/apt/dists/jessie-pgdg/. We recommend to install a Backport of postgresql-9.6 following the instructions at https://backports.debian.org/Instructions/ .
 
 #### Other platforms
 
@@ -90,9 +105,9 @@ is required.
 
 To Install Redis:
 
-{{<highlight bash>}}
+```bash
 sudo apt-get install redis-server
-{{< /highlight >}}
+```
 
 #### Other platforms
 

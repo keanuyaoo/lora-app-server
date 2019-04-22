@@ -4,24 +4,31 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-devel
+    command: make serve
     volumes:
-      - ./:/lora-app-server
+      - ./:/go/src/github.com/brocaar/lora-app-server
     links:
       - postgres
       - redis
       - mosquitto
     environment:
-      - TEST_POSTGRES_DSN=postgres://loraserver_as:loraserver_as@postgres/loraserver_as?sslmode=disable
+      - DB_AUTOMIGRATE=true
+      - POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - MQTT_SERVER=tcp://mosquitto:1883
+      - TEST_POSTGRES_DSN=postgres://loraserver:loraserver@postgres/loraserver?sslmode=disable
       - TEST_REDIS_URL=redis://redis:6379
       - TEST_MQTT_SERVER=tcp://mosquitto:1883
 
   postgres:
-    image: postgres:9.6-alpine
-    volumes:
-      - ./.docker-compose/postgresql/initdb:/docker-entrypoint-initdb.d
+    image: postgres:9.5
+    environment:
+      - POSTGRES_PASSWORD=loraserver
+      - POSTGRES_USER=loraserver
+      - POSTGRES_DB=loraserver
 
   redis:
-    image: redis:4-alpine
+    image: redis:3.0.7-alpine
 
   mosquitto:
-    image: eclipse-mosquitto
+    image: ansi/mosquitto

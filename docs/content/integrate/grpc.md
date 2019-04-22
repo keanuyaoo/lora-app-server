@@ -4,7 +4,6 @@ menu:
     main:
         parent: integrate
         weight: 5
-description: Information about integrating with the gRPC API interface.
 ---
 
 # gRPC API

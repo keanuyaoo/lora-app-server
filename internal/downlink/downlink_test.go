@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+	"github.com/gofrs/uuid"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver/mock"
 	"github.com/brocaar/lora-app-server/internal/codec"
-	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/config"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/loraserver/api/ns"
@@ -21,36 +20,38 @@ import (
 
 func TestHandleDownlinkQueueItem(t *testing.T) {
 	conf := test.GetConfig()
-	if err := storage.Setup(conf); err != nil {
+	db, err := storage.OpenDatabase(conf.PostgresDSN)
+	if err != nil {
 		t.Fatal(err)
 	}
+	config.C.PostgreSQL.DB = db
 
 	Convey("Given a clean database an organization, application + node", t, func() {
-		test.MustResetDB(storage.DB().DB)
+		test.MustResetDB(config.C.PostgreSQL.DB)
 
-		nsClient := mock.NewClient()
+		nsClient := test.NewNetworkServerClient()
 		nsClient.GetNextDownlinkFCntForDevEUIResponse = ns.GetNextDownlinkFCntForDevEUIResponse{
 			FCnt: 12,
 		}
-		networkserver.SetPool(mock.NewPool(nsClient))
+		config.C.NetworkServer.Pool = test.NewNetworkServerPool(nsClient)
 
 		org := storage.Organization{
 			Name: "test-org",
 		}
-		So(storage.CreateOrganization(storage.DB(), &org), ShouldBeNil)
+		So(storage.CreateOrganization(config.C.PostgreSQL.DB, &org), ShouldBeNil)
 
 		n := storage.NetworkServer{
 			Name:   "test-ns",
 			Server: "test-ns:1234",
 		}
-		So(storage.CreateNetworkServer(storage.DB(), &n), ShouldBeNil)
+		So(storage.CreateNetworkServer(config.C.PostgreSQL.DB, &n), ShouldBeNil)
 
 		sp := storage.ServiceProfile{
 			Name:            "test-sp",
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateServiceProfile(storage.DB(), &sp), ShouldBeNil)
+		So(storage.CreateServiceProfile(config.C.PostgreSQL.DB, &sp), ShouldBeNil)
 		spID, err := uuid.FromBytes(sp.ServiceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -59,7 +60,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			OrganizationID:  org.ID,
 			NetworkServerID: n.ID,
 		}
-		So(storage.CreateDeviceProfile(storage.DB(), &dp), ShouldBeNil)
+		So(storage.CreateDeviceProfile(config.C.PostgreSQL.DB, &dp), ShouldBeNil)
 		dpID, err := uuid.FromBytes(dp.DeviceProfile.Id)
 		So(err, ShouldBeNil)
 
@@ -68,7 +69,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:             "test-app",
 			ServiceProfileID: spID,
 		}
-		So(storage.CreateApplication(storage.DB(), &app), ShouldBeNil)
+		So(storage.CreateApplication(config.C.PostgreSQL.DB, &app), ShouldBeNil)
 
 		device := storage.Device{
 			ApplicationID:   app.ID,
@@ -76,14 +77,14 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			Name:            "test-node",
 			DevEUI:          [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		}
-		So(storage.CreateDevice(storage.DB(), &device), ShouldBeNil)
+		So(storage.CreateDevice(config.C.PostgreSQL.DB, &device), ShouldBeNil)
 
 		da := storage.DeviceActivation{
 			DevEUI:  [8]byte{1, 2, 3, 4, 5, 6, 7, 8},
 			DevAddr: [4]byte{1, 2, 3, 4},
 			AppSKey: [16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
 		}
-		So(storage.CreateDeviceActivation(storage.DB(), &da), ShouldBeNil)
+		So(storage.CreateDeviceActivation(config.C.PostgreSQL.DB, &da), ShouldBeNil)
 
 		b, err := lorawan.EncryptFRMPayload(da.AppSKey, false, da.DevAddr, 12, []byte{1, 2, 3, 4})
 		So(err, ShouldBeNil)
@@ -91,7 +92,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 		Convey("Given a set of tests", func() {
 			tests := []struct {
 				Name                 string
-				Payload              integration.DataDownPayload
+				Payload              handler.DataDownPayload
 				PayloadCodec         codec.Type
 				PayloadEncoderScript string
 
@@ -100,7 +101,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 			}{
 				{
 					Name: "unconfirmed payload",
-					Payload: integration.DataDownPayload{
+					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID,
 						DevEUI:        device.DevEUI,
 						Confirmed:     false,
@@ -120,7 +121,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				},
 				{
 					Name: "confirmed payload",
-					Payload: integration.DataDownPayload{
+					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID,
 						DevEUI:        device.DevEUI,
 						Confirmed:     true,
@@ -140,7 +141,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 				},
 				{
 					Name: "invalid application id",
-					Payload: integration.DataDownPayload{
+					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID + 1,
 						DevEUI:        device.DevEUI,
 						Confirmed:     true,
@@ -162,7 +163,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 							];
 						}
 					`,
-					Payload: integration.DataDownPayload{
+					Payload: handler.DataDownPayload{
 						ApplicationID: app.ID,
 						DevEUI:        device.DevEUI,
 						FPort:         2,
@@ -186,7 +187,7 @@ func TestHandleDownlinkQueueItem(t *testing.T) {
 					// update application
 					app.PayloadCodec = test.PayloadCodec
 					app.PayloadEncoderScript = test.PayloadEncoderScript
-					So(storage.UpdateApplication(storage.DB(), app), ShouldBeNil)
+					So(storage.UpdateApplication(config.C.PostgreSQL.DB, app), ShouldBeNil)
 
 					err := handleDataDownPayload(test.Payload)
 					if test.ExpectedError != nil {

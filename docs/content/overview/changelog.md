@@ -4,144 +4,9 @@ menu:
     main:
         parent: overview
         weight: 4
-toc: false
-description: Lists the changes per LoRa App Server release, including steps how to upgrade.
 ---
 
 # Changelog
-
-## v2.6.0
-
-### Features
-
-#### New integrations
-
-Support has been added to forward events to an [Azure service-bus](https://azure.microsoft.com/en-us/services/service-bus/)
-or to [AWS SNS](https://aws.amazon.com/sns/). See [Configuration](https://www.loraserver.io/lora-app-server/install/config/).
-
-### Improvements
-
-* Make JS codec maximum execution-time configurable and increase default value to 100ms.
-* Add configuration option for CORS headers. ([#275](https://github.com/brocaar/lora-app-server/pull/275))
-* Internal code-cleanup with regards to passing configuration and objects.
-* Internal migration from Dep to [Go modules](https://github.com/golang/go/wiki/Modules).
-* Improve authentication validator SQL query for speed. ([#302](https://github.com/brocaar/lora-app-server/pull/302))
-* Add codec execution time for decoding. ([#307](https://github.com/brocaar/lora-app-server/pull/307))
-* UI: Make delete application confirmation more explicit. ([#306](https://github.com/brocaar/lora-app-server/pull/306))
-
-## v2.5.1
-
-### Bugfixes
-
-* Fix panic in InfluxDB handler on `null` values in object ([#295](https://github.com/brocaar/lora-app-server/issues/295))
-
-## v2.5.0
-
-### Features
-
-#### Support for retained messages
-
-It is now possible to [configure](https://www.loraserver.io/lora-app-server/install/config/) the retained flag for the MQTT integration.
-When set, the MQTT broker will retain the last message and send this
-immediately when a MQTT client connects. ([#272](https://github.com/brocaar/lora-app-server/pull/272))
-
-#### Environment variable based configuration
-
-Environment variable based [configuration](https://www.loraserver.io/lora-app-server/install/config/) has been re-implemented.
-
-### Improvements
-
-* Calls made by the HTTP integration are now made async.
-* The alignment of the UI tabs has been improved.
-
-### Bugfixes
-
-* Fix potential deadlock on MQTT re-connect ([#103](https://github.com/brocaar/lora-gateway-bridge/issues/103))
-* Fix logrotate issue (init based systems) ([#282](https://github.com/brocaar/lora-app-server/pull/282)
-
-## v2.4.1
-
-### Bugfixes
-
-* Fix `createLeafletElement` implementation error (introduced by v2.4.0 leaflet upgrade).
-
-## v2.4.0
-
-### Improvements
-
-#### TLS for web-interface and API optional
-
-It is no longer required to configure a TLS certificate for securing the
-LoRa App Server web-interface and API. This configuration is now optional
-and unset by default.
-
-#### InfluxDB uplink meta-data
-
-The following values have been added:
-
-* RSSI
-* SNR
-* Uplink frame-counter
-
-#### EUI and key input fields (web-interface)
-
-The device EUI and (session)key input fields have been improved for easier
-input, supporting both MSB and LSB byte order. Also only the required fields
-(based on LoRaWAN 1.0.x or 1.1.x) are displayed in the forms.
-
-## v2.3.0
-
-### Features
-
-#### Google Cloud Platform integration
-
-LoRa App Server is now able to publish application data to
-[Cloud Pub/Sub](https://cloud.google.com/pubsub/) as an alternative to a MQTT
-broker. Please refer to the [Configuration](https://www.loraserver.io/lora-app-server/install/config/)
-for more information.
-
-### Deactivate device API
-
-An API endpoint has been added to de-activate (not remove) devices.
-
-### Device battery status
-
-LoRa App Server now publishes the device battery-level as a percentage instead
-of a value between `0...255`. The `battery` field will be removed in the next
-major release.
-
-### Improvements
-
-* The join-server `ca_cert` can be left blank to disable client-certificate
-  validation when a TLS certificate is configured.
-
-## v2.2.0
-
-### Upgrade notes
-
-This upgrade is backwards compatible with previous v2 releases, but when using
-geolocation-support, you must also upgrade LoRa Server to v2.2.0+.
-
-### Features
-
-#### Geolocation
-
-This release adds geolocation support.
-
-* Configuration of fine-timestamp decryption keys (e.g. for the Kerlink iBTS).
-* `.../location` MQTT topics on which device locations are published.
-* Location notification endpoint for HTTP integration.
-* Per device reference altitude (for more accurate geolocation).
-
-#### Improvements
-
-* Replace `garyburd/redigo/redis` with `gomodule/redigo/redis`.
-
-
-#### Bugfixes
-
-* Status notification endpoint was missing for HTTP integration.
-* Fix `/api` endpoint redirecting to web-interface (this might require a clear cache).
 
 ## v2.1.0
 
@@ -223,20 +88,20 @@ re-used for create / get and update methods).
 
 `POST /api/devices`
 
-{{<highlight json>}}
+```json
 {
   "name": "test-device",
   "devEUI": "0102030405060708",
   "applicationID": "123"
   ...
 }
-{{< /highlight >}}
+```
 
 ##### New API
 
 `POST /api/devices`
 
-{{<highlight json>}}
+```json
 {
   "device": {
     "name": "test-device",
@@ -245,7 +110,7 @@ re-used for create / get and update methods).
     ...
   }
 }
-{{< /highlight >}}
+```
 
 #### InfluxDB changes
 
@@ -292,9 +157,9 @@ This marks the first stable release!
 * As some configuration defaults have been changed (in the MQTT topic `node`
   has been replaced by `device`), make sure the old defaults are in you config
   file. To re-generate a configuration file while keeping your modifications, run:
-  {{<highlight bash>}}
+  ```bash
   lora-app-server -c lora-app-server-old.toml configfile > lora-app-server.toml
-  {{< /highlight >}}
+  ```
 * You are now ready to upgrade to v1.0.0!
 
 See [Downloads](https://www.loraserver.io/lora-app-server/overview/downloads/)
@@ -396,13 +261,13 @@ extension could be enabled using the commands below.
 
 Start the PostgreSQL prompt as the `postgres` user:
 
-{{<highlight bash>}}
+```bash
 sudo -u postgres psql
-{{< /highlight >}}
+```
 
 Within the PostgreSQL prompt, enter the following queries:
 
-{{<highlight sql>}}
+```sql
 -- change to the LoRa App Server database
 \c loraserver_as
 
@@ -411,7 +276,7 @@ create extension pg_trgm;
 
 -- exit the prompt
 \q
-{{< /highlight >}}
+```
 
 ## 0.18.2
 

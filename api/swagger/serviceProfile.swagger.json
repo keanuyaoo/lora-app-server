@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiListServiceProfileResponse"
             }
@@ -62,7 +62,7 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiCreateServiceProfileResponse"
             }
@@ -89,7 +89,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiGetServiceProfileResponse"
             }
@@ -113,9 +113,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -139,9 +139,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -388,6 +388,11 @@
           "description": "Service-profile object to update."
         }
       }
+    },
+    "protobufEmpty": {
+      "type": "object",
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

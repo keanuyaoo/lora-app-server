@@ -4,7 +4,6 @@ menu:
     main:
         parent: use
         weight: 2
-description: Manage users, make them global administrators and configure credentials.
 ---
 
 # User management

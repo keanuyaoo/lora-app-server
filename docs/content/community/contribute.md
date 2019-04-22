@@ -4,7 +4,6 @@ menu:
     main:
         parent: community
         weight: 2
-description: Information how you can contribute to the LoRa App Server component.
 ---
 
 # Contribute

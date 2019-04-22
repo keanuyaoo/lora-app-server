@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiListGatewayResponse"
             }
@@ -69,9 +69,9 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -96,9 +96,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -130,9 +130,9 @@
         "operationId": "StreamFrameLogs",
         "responses": {
           "200": {
-            "description": "A successful response.(streaming responses)",
+            "description": "(streaming responses)",
             "schema": {
-              "$ref": "#/x-stream-definitions/apiStreamGatewayFrameLogsResponse"
+              "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
             }
           }
         },
@@ -156,7 +156,7 @@
         "operationId": "GetLastPing",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiGetLastPingResponse"
             }
@@ -182,7 +182,7 @@
         "operationId": "GetStats",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiGetGatewayStatsResponse"
             }
@@ -231,7 +231,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
               "$ref": "#/definitions/apiGetGatewayResponse"
             }
@@ -255,9 +255,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/protobufEmpty"
             }
           }
         },
@@ -355,26 +355,6 @@
       },
       "description": "Same comment as above applies to this message."
     },
-    "apiEncryptedFineTimestamp": {
-      "type": "object",
-      "properties": {
-        "aesKeyIndex": {
-          "type": "integer",
-          "format": "int64",
-          "description": "AES key index used for encrypting the fine timestamp."
-        },
-        "encryptedNS": {
-          "type": "string",
-          "format": "byte",
-          "description": "Encrypted 'main' fine-timestamp (ns precision part of the timestamp)."
-        },
-        "fpgaID": {
-          "type": "string",
-          "description": "FPGA ID."
-        }
-      },
-      "description": "this s a copy of gw.EncryptedFineTimestamp which the only change that\nthe fpga_id is of type string so that it can be returned in HEX format\ninstead of base64."
-    },
     "apiGateway": {
       "type": "object",
       "properties": {
@@ -397,7 +377,7 @@
         "organizationID": {
           "type": "string",
           "format": "int64",
-          "description": "Organization ID to which the gateway belongs.\nThis can't be changed after creating the gateway."
+          "description": "Organization ID to which the gateway belongs."
         },
         "discoveryEnabled": {
           "type": "boolean",
@@ -412,26 +392,6 @@
         "gatewayProfileID": {
           "type": "string",
           "description": "Gateway-profile ID (UUID string, optional)."
-        },
-        "boards": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiGatewayBoard"
-          },
-          "description": "Gateway boards configuration (optional).\nThis is (currently) only needed when the gateway supports the fine-timestamp\nand you you would like to add the FPGA ID to the gateway meta-data or would\nlike LoRa Server to decrypt the fine-timestamp."
-        }
-      }
-    },
-    "apiGatewayBoard": {
-      "type": "object",
-      "properties": {
-        "fpgaID": {
-          "type": "string",
-          "description": "FPGA ID of the gateway (HEX encoded) (optional)."
-        },
-        "fineTimestampKey": {
-          "type": "string",
-          "description": "Fine-timestamp AES decryption key (HEX encoded) (optional)."
         }
       }
     },
@@ -716,18 +676,6 @@
         "location": {
           "$ref": "#/definitions/commonLocation",
           "description": "Location."
-        },
-        "fineTimestampType": {
-          "$ref": "#/definitions/gwFineTimestampType",
-          "description": "Fine-timestamp type."
-        },
-        "encryptedFineTimestamp": {
-          "$ref": "#/definitions/apiEncryptedFineTimestamp",
-          "description": "Encrypted fine-timestamp data."
-        },
-        "plainFineTimestamp": {
-          "$ref": "#/definitions/gwPlainFineTimestamp",
-          "description": "Plain fine-timestamp data."
         }
       },
       "description": "This is a copy of gw.UplinkRXInfo with the only change that the\ngateway_id is of type string so that we can return it as HEX encoded\ninstead of base64."
@@ -796,16 +744,6 @@
         }
       }
     },
-    "gwFineTimestampType": {
-      "type": "string",
-      "enum": [
-        "NONE",
-        "ENCRYPTED",
-        "PLAIN"
-      ],
-      "default": "NONE",
-      "description": " - NONE: No fine-timestamp available.\n - ENCRYPTED: Encrypted fine-timestamp.\n - PLAIN: Plain fine-timestamp."
-    },
     "gwLoRaModulationInfo": {
       "type": "object",
       "properties": {
@@ -827,16 +765,6 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Polarization inversion."
-        }
-      }
-    },
-    "gwPlainFineTimestamp": {
-      "type": "object",
-      "properties": {
-        "time": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Full timestamp."
         }
       }
     },
@@ -862,56 +790,10 @@
         }
       }
     },
-    "protobufAny": {
+    "protobufEmpty": {
       "type": "object",
-      "properties": {
-        "typeUrl": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "runtimeStreamError": {
-      "type": "object",
-      "properties": {
-        "grpcCode": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "httpCode": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "httpStatus": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    }
-  },
-  "x-stream-definitions": {
-    "apiStreamGatewayFrameLogsResponse": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "$ref": "#/definitions/apiStreamGatewayFrameLogsResponse"
-        },
-        "error": {
-          "$ref": "#/definitions/runtimeStreamError"
-        }
-      },
-      "title": "Stream result of apiStreamGatewayFrameLogsResponse"
+      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
     }
   }
 }

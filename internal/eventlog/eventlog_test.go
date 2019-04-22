@@ -8,6 +8,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/lora-app-server/internal/test"
 	"github.com/brocaar/lorawan"
@@ -15,12 +16,11 @@ import (
 
 func TestEventLog(t *testing.T) {
 	conf := test.GetConfig()
-	if err := storage.Setup(conf); err != nil {
-		t.Fatal(err)
-	}
+	p := storage.NewRedisPool(conf.RedisURL, 10, 0)
+	config.C.Redis.Pool = p
 
 	Convey("Given a clean Redis database", t, func() {
-		test.MustFlushRedis(storage.RedisPool())
+		test.MustFlushRedis(p)
 
 		Convey("Testing GetEventLogForDevice", func() {
 			devEUI := lorawan.EUI64{1, 2, 3, 4, 5, 6, 7, 8}

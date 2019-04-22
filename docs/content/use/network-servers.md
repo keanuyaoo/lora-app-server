@@ -4,7 +4,6 @@ menu:
     main:
         parent: use
         weight: 3
-description: Manage the connected network-servers (LoRa Server instances), supporting multiple regions.
 ---
 
 # Network-server management

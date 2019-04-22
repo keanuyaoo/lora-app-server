@@ -1,4 +1,5 @@
-project_name: lora-app-server
+git:
+  short_hash: true
 
 builds:
   - main: cmd/lora-app-server/main.go
@@ -21,21 +22,4 @@ builds:
         goarch: 386
 
 release:
-  disable: true
-
-nfpm:
-  vendor: LoRa Server project
-  homepage: https://www.loraserver.io/
-  maintainer: Orne Brocaar <info@brocaar.com>
-  description: LoRa App Server
-  license: MIT
-  formats:
-    - deb
-  bindir: /usr/bin
-  files:
-    "packaging/files/lora-app-server.rotate": "/etc/logrotate.d/lora-app-server"
-    "packaging/files/lora-app-server.init": "/usr/lib/lora-app-server/scripts/lora-app-server.init"
-    "packaging/files/lora-app-server.service": "/usr/lib/lora-app-server/scripts/lora-app-server.service"
-  scripts:
-    postinstall: "packaging/scripts/post-install.sh"
-    postremove: "packaging/scripts/post-remove.sh"
+  draft: true

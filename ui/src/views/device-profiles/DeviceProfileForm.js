@@ -116,7 +116,7 @@ class DeviceProfileForm extends FormComponent {
         onSubmit={this.onSubmit}
         disabled={this.props.disabled}
       >
-        <Tabs value={this.state.tab} onChange={this.onTabChange} indicatorColor="primary">
+        <Tabs value={this.state.tab} onChange={this.onTabChange} indicatorColor="primary" fullWidth>
           <Tab label="General" />
           <Tab label="Join (OTAA / ABP)" />
           <Tab label="Class-B" />

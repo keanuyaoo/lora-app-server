@@ -11,7 +11,6 @@ import FormGroup from "@material-ui/core/FormGroup";
 
 import FormComponent from "../../classes/FormComponent";
 import Form from "../../components/Form";
-import EUI64Field from "../../components/EUI64Field";
 import AutocompleteSelect from "../../components/AutocompleteSelect";
 import DeviceProfileStore from "../../stores/DeviceProfileStore";
 
@@ -76,15 +75,18 @@ class DeviceForm extends FormComponent {
           fullWidth
           required
         />
-        {!this.props.update && <EUI64Field
-          margin="normal"
+        {!this.props.update && <TextField
           id="devEUI"
           label="Device EUI"
+          placeholder="0000000000000000"
+          helperText="The device EUI in hex encoding."
           onChange={this.onChange}
           value={this.state.object.devEUI || ""}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{16}"
+          }}
           fullWidth
           required
-          random
         />}
         <FormControl fullWidth margin="normal">
           <FormLabel className={this.props.classes.formLabel} required>Device-profile</FormLabel>

@@ -157,6 +157,7 @@ class DeviceLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
+            fullWidth
           >
             <Tab label="Configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}`} />
             {this.state.admin && <Tab label="Keys (OTAA)" disabled={!this.state.deviceProfile.deviceProfile.supportsJoin} component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/devices/${this.props.match.params.devEUI}/keys`} />}
@@ -169,7 +170,7 @@ class DeviceLayout extends Component {
         <Grid item xs={12}>
           <Switch>
             <Route exact path={`${this.props.match.path}`} render={props => <UpdateDevice device={this.state.device.device} admin={this.state.admin} {...props} />} />
-            <Route exact path={`${this.props.match.path}/keys`} render={props => <DeviceKeys device={this.state.device.device} admin={this.state.admin} deviceProfile={this.state.deviceProfile.deviceProfile} {...props} />} />
+            <Route exact path={`${this.props.match.path}/keys`} render={props => <DeviceKeys device={this.state.device.device} admin={this.state.admin} {...props} />} />
             <Route exact path={`${this.props.match.path}/activation`} render={props => <DeviceActivation device={this.state.device.device} admin={this.state.admin} deviceProfile={this.state.deviceProfile.deviceProfile} {...props} />} />
             <Route exact path={`${this.props.match.path}/data`} render={props => <DeviceData device={this.state.device.device} admin={this.state.admin} {...props} />} />
             <Route exact path={`${this.props.match.path}/frames`} render={props => <DeviceFrames device={this.state.device.device} admin={this.state.admin} {...props} />} />

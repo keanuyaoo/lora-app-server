@@ -9,10 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/codec"
+	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/lora-app-server/internal/eventlog"
-	"github.com/brocaar/lora-app-server/internal/integration"
+	"github.com/brocaar/lora-app-server/internal/handler"
 	"github.com/brocaar/lora-app-server/internal/storage"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -21,8 +21,8 @@ import (
 // HandleDataDownPayloads handles received downlink payloads to be emitted to the
 // devices.
 func HandleDataDownPayloads() {
-	for pl := range integration.Integration().DataDownChan() {
-		go func(pl integration.DataDownPayload) {
+	for pl := range config.C.ApplicationServer.Integration.Handler.DataDownChan() {
+		go func(pl handler.DataDownPayload) {
 			if err := handleDataDownPayload(pl); err != nil {
 				log.WithFields(log.Fields{
 					"dev_eui":        pl.DevEUI,
@@ -33,8 +33,8 @@ func HandleDataDownPayloads() {
 	}
 }
 
-func handleDataDownPayload(pl integration.DataDownPayload) error {
-	return storage.Transaction(func(tx sqlx.Ext) error {
+func handleDataDownPayload(pl handler.DataDownPayload) error {
+	return storage.Transaction(config.C.PostgreSQL.DB, func(tx sqlx.Ext) error {
 		// lock the device so that a concurrent Enqueue action will block
 		// until this transaction has been completed
 		d, err := storage.GetDevice(tx, pl.DevEUI, true, true)
@@ -93,7 +93,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 	if err != nil {
 		return 0, errors.Wrap(err, "get network-server error")
 	}
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return 0, errors.Wrap(err, "get network-server client error")
 	}
@@ -142,7 +142,7 @@ func EnqueueDownlinkPayload(db sqlx.Ext, devEUI lorawan.EUI64, confirmed bool, f
 }
 
 func logCodecError(a storage.Application, d storage.Device, err error) {
-	errNotification := integration.ErrorNotification{
+	errNotification := handler.ErrorNotification{
 		ApplicationID:   a.ID,
 		ApplicationName: a.Name,
 		DeviceName:      d.Name,
@@ -158,7 +158,7 @@ func logCodecError(a storage.Application, d storage.Device, err error) {
 		log.WithError(err).Error("log event for device error")
 	}
 
-	if err := integration.Integration().SendErrorNotification(errNotification); err != nil {
-		log.WithError(err).Error("send error notification to integration error")
+	if err := config.C.ApplicationServer.Integration.Handler.SendErrorNotification(errNotification); err != nil {
+		log.WithError(err).Error("send error notification to handler error")
 	}
 }

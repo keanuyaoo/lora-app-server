@@ -3,10 +3,12 @@ package config
 import (
 	"time"
 
-	"github.com/brocaar/lora-app-server/internal/integration/awssns"
-	"github.com/brocaar/lora-app-server/internal/integration/azureservicebus"
-	"github.com/brocaar/lora-app-server/internal/integration/gcppubsub"
-	"github.com/brocaar/lora-app-server/internal/integration/mqtt"
+	"github.com/garyburd/redigo/redis"
+
+	"github.com/brocaar/lora-app-server/internal/common"
+	"github.com/brocaar/lora-app-server/internal/handler"
+	"github.com/brocaar/lora-app-server/internal/handler/mqtthandler"
+	"github.com/brocaar/lora-app-server/internal/nsclient"
 )
 
 // Config defines the configuration structure.
@@ -19,30 +21,22 @@ type Config struct {
 	PostgreSQL struct {
 		DSN         string `mapstructure:"dsn"`
 		Automigrate bool
+		DB          *common.DBLogger `mapstructure:"db"`
 	} `mapstructure:"postgresql"`
 
 	Redis struct {
 		URL         string        `mapstructure:"url"`
 		MaxIdle     int           `mapstructure:"max_idle"`
 		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
+		Pool        *redis.Pool
 	}
 
 	ApplicationServer struct {
 		ID string `mapstructure:"id"`
 
-		Codec struct {
-			JS struct {
-				MaxExecutionTime time.Duration `mapstructure:"max_execution_time"`
-			} `mapstructure:"js"`
-		} `mapstructure:"codec"`
-
 		Integration struct {
-			Backend         string                 `mapstructure:"backend"` // deprecated
-			Enabled         []string               `mapstructure:"enabled"`
-			AWSSNS          awssns.Config          `mapstructure:"aws_sns"`
-			AzureServiceBus azureservicebus.Config `mapstructure:"azure_service_bus"`
-			MQTT            mqtt.Config            `mapstructure:"mqtt"`
-			GCPPubSub       gcppubsub.Config       `mapstructure:"gcp_pub_sub"`
+			Handler handler.Handler
+			MQTT    mqtthandler.Config `mapstructure:"mqtt"`
 		}
 
 		API struct {
@@ -59,7 +53,6 @@ type Config struct {
 			TLSKey                     string `mapstructure:"tls_key"`
 			JWTSecret                  string `mapstructure:"jwt_secret"`
 			DisableAssignExistingUsers bool   `mapstructure:"disable_assign_existing_users"`
-			CORSAllowOrigin            string `mapstructure:"cors_allow_origin"`
 		} `mapstructure:"external_api"`
 
 		Branding struct {
@@ -84,6 +77,10 @@ type Config struct {
 			}
 		} `mapstructure:"kek"`
 	} `mapstructure:"join_server"`
+
+	NetworkServer struct {
+		Pool nsclient.Pool
+	} `mapstructure:"network_server"`
 }
 
 // C holds the global configuration.

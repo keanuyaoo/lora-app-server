@@ -4,7 +4,6 @@ menu:
     main:
         parent: use
         weight: 11
-description: Show live LoRaWAN frames for debugging device and gateway behavior.
 ---
 
 # Frame logging
@@ -55,7 +54,7 @@ logged since opening the **Live frame logs** tab.
 
 ### Example JSON output
 
-{{<highlight json>}}
+```json
 [
     {
         "uplinkMetaData": {
@@ -110,4 +109,4 @@ logged since opening the **Live frame logs** tab.
         }
     }
 ]
-{{< /highlight >}}
+```

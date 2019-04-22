@@ -4,7 +4,6 @@ menu:
     main:
         parent: integrate
         weight: 4
-description: Information on API tokens for authentication and authorization.
 ---
 
 # Authentication / authorization
@@ -16,13 +15,13 @@ it is important to choose an unique and strong secret.
 
 To generate a random secret, you could use the following command:
 
-{{<highlight bash>}}
+```bash
 openssl rand -base64 32
-{{< /highlight >}}
+```
 
 Example claim:
 
-{{<highlight json>}}
+```json
 {
 	"iss": "lora-app-server",      // issuer of the claim
 	"aud": "lora-app-server",      // audience for which the claim is intended
@@ -31,7 +30,7 @@ Example claim:
 	"sub": "user",                 // subject of the claim (an user)
 	"username": "admin"            // username the client claims to be
 }
-{{< /highlight >}}
+```
 
 ## Setting the authentication token
 

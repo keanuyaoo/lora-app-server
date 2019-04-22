@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 import { withStyles } from "@material-ui/core/styles";
 import TextField from '@material-ui/core/TextField';
@@ -8,7 +8,6 @@ import FormHelperText from "@material-ui/core/FormHelperText";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormLabel from "@material-ui/core/FormLabel";
 import Checkbox from '@material-ui/core/Checkbox';
-import Button from "@material-ui/core/Button";
 
 import { Map, Marker } from 'react-leaflet';
 
@@ -22,74 +21,6 @@ import MapTileLayer from "../../components/MapTileLayer";
 import theme from "../../theme";
 
 
-const boardStyles = {
-  formLabel: {
-    color: theme.palette.primary.main,
-  },
-  a: {
-    color: theme.palette.primary.main,
-  },
-};
-
-class GatewayBoardForm extends Component {
-  constructor() {
-    super();
-
-    this.onChange = this.onChange.bind(this);
-    this.onDelete = this.onDelete.bind(this);
-  }
-
-  onChange(e) {
-    let board = this.props.board;
-    const field = e.target.id;
-
-    board[field] = e.target.value;
-    this.props.onChange(board);
-  }
-
-  onDelete(e) {
-    e.preventDefault();
-    this.props.onDelete();
-  }
-
-  render() {
-    return(
-      <FormControl fullWidth margin="normal">
-        <FormLabel className={this.props.classes.formLabel}>Board #{this.props.i} configuration (<a href="#delete" onClick={this.onDelete} className={this.props.classes.a}>delete</a>)</FormLabel>
-        <TextField
-          id="fpgaID"
-          label="FPGA ID"
-          margin="normal"
-          value={this.props.board.fpgaID || ""}
-          onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{16}",
-          }}
-          placeholder="0000000000000000"
-          helperText="The FPGA ID of the geoloc concentrator board. This is only available for v2 gateways with geolocation capabilities. (optional)"
-          fullWidth
-        />
-        <TextField
-          id="fineTimestampKey"
-          label="Fine-timestamp decryption key"
-          margin="normal"
-          value={this.props.board.fineTimestampKey || ""}
-          onChange={this.onChange}
-          inputProps={{
-            pattern: "[A-Fa-f0-9]{32}",
-          }}
-          placeholder="000000000000000000000000000000000"
-          helperText="The fine-timestamp AES decryption key. When set, LoRa Server will decrypt the fine-timestamp. This is only available for v2 gateways with geolocation capabilities. (optional)"
-          fullWidth
-        />
-      </FormControl>
-    );
-  }
-}
-
-GatewayBoardForm = withStyles(boardStyles)(GatewayBoardForm);
-
-
 const styles = {
   mapLabel: {
     marginBottom: theme.spacing.unit,
@@ -101,6 +32,7 @@ const styles = {
     fontSize: 12,
   },
 };
+
 
 class GatewayForm extends FormComponent {
   constructor() {
@@ -117,7 +49,6 @@ class GatewayForm extends FormComponent {
     this.setCurrentPosition = this.setCurrentPosition.bind(this);
     this.updatePosition = this.updatePosition.bind(this);
     this.updateZoom = this.updateZoom.bind(this);
-    this.addGatewayBoard = this.addGatewayBoard.bind(this);
   }
 
   componentDidMount() {
@@ -206,35 +137,6 @@ class GatewayForm extends FormComponent {
     });
   }
 
-  addGatewayBoard() {
-    let object = this.state.object;
-    if (object.boards === undefined) {
-      object.boards = [{}];
-    } else {
-      object.boards.push({});
-    }
-
-    this.setState({
-      object: object,
-    });
-  }
-
-  deleteGatewayBoard(i) {
-    let object = this.state.object;
-    object.boards.splice(i, 1);
-    this.setState({
-      object: object,
-    });
-  }
-
-  updateGatewayBoard(i, board) {
-    let object = this.state.object;
-    object.boards[i] = board;
-    this.setState({
-      object: object,
-    });
-  }
-
   render() {
     if (this.state.object === undefined) {
       return(<div></div>);
@@ -251,16 +153,10 @@ class GatewayForm extends FormComponent {
       position = [0, 0];
     }
 
-    let boards = [];
-    if (this.state.object.boards !== undefined) {
-      boards = this.state.object.boards.map((b, i) => <GatewayBoardForm key={i} i={i} board={b} onDelete={() => this.deleteGatewayBoard(i)} onChange={board => this.updateGatewayBoard(i, board)} />);
-    }
-
     return(
       <Form
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
-        extraButtons={<Button onClick={this.addGatewayBoard}>Add board configuration</Button>}
       >
         <TextField
           id="name"
@@ -376,7 +272,6 @@ class GatewayForm extends FormComponent {
             Drag the marker to the location of the gateway. When the gateway has an on-board GPS, this value will be set automatically when the network receives statistics from the gateway.
           </FormHelperText>
         </FormControl>
-        {boards}
       </Form>
     );
   }

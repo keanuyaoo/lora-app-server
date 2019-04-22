@@ -4,15 +4,13 @@ menu:
     main:
         parent: install
         weight: 4
-toc: false
-description: Instructions and examples how to configure the LoRa App Server service.
 ---
 
 # Configuration
 
 The `lora-app-server` binary has the following command-line flags:
 
-{{<highlight text>}}
+```text
 LoRa App Server is an open-source application-server, part of the LoRa Server project
 	> documentation & support: https://www.loraserver.io/lora-app-server
 	> source & copyright information: https://github.com/brocaar/lora-app-server
@@ -32,7 +30,7 @@ Flags:
       --log-level int   debug=5, info=4, error=2, fatal=1, panic=0 (default 4)
 
 Use "lora-app-server [command] --help" for more information about a command.
-{{< /highlight >}}
+```
 
 ## Configuration file
 
@@ -47,22 +45,22 @@ To load configuration from a different location, use the `--config` flag.
 
 To generate a new configuration file `lora-app-server.toml`, execute the following command:
 
-{{<highlight bash>}}
+```bash
 lora-app-server configfile > lora-app-server.toml
-{{< /highlight >}}
+```
 
 Note that this configuration file will be pre-filled with the current configuration
 (either loaded from the paths mentioned above, or by using the `--config` flag).
 This makes it possible when new fields get added to upgrade your configuration file
 while preserving your old configuration. Example:
 
-{{<highlight bash>}}
+```bash
 lora-app-server configfile --config lora-app-server-old.toml > lora-app-server-new.toml
-{{< /highlight >}}
+```
 
 Example configuration file:
 
-{{<highlight toml>}}
+```toml
 [general]
 # Log level
 #
@@ -147,37 +145,15 @@ idle_timeout="5m0s"
 id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 
 
-  # JavaScript codec settings.
-  [application_server.codec.js]
-  # Maximum execution time.
-  max_execution_time="100ms"
-
-
-  # Integration configures the data integration.
-  #
-  # This is the data integration which is available for all applications,
-  # besides the extra integrations that can be added on a per-application
-  # basis.
-  [application_server.integration]
-  # Enabled integrations.
-  #
-  # Enabled integrations are enabled for all applications. Multiple
-  # integrations can be configured.
-  # Do not forget to configure the related configuration section below for
-  # the enabled integrations. Integrations that can be enabled are:
-  # * mqtt              - MQTT broker
-  # * aws_sns           - AWS Simple Notification Service (SNS)
-  # * azure_service_bus - Azure Service-Bus
-  # * gcp_pub_sub       - Google Cloud Pub/Sub
-  enabled=["mqtt"]
-
-
-  # MQTT integration backend.
+  # MQTT integration configuration used for publishing (data) events
+  # and scheduling downlink application payloads.
+  # Next to this integration which is always available, the user is able to
+  # configure additional per-application integrations.
   [application_server.integration.mqtt]
   # MQTT topic templates for the different MQTT topics.
   #
   # The meaning of these topics are documented at:
-  # https://www.loraserver.io/lora-app-server/integrate/data/
+  # https://docs.loraserver.io/lora-app-server/integrate/data/
   #
   # The following substitutions can be used:
   # * "{{ .ApplicationID }}" for the application id.
@@ -191,19 +167,6 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   ack_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack"
   error_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error"
   status_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status"
-  location_topic_template="application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location"
-
-  # Retained messages configuration.
-  #
-  # The MQTT broker will store the last publised message, when retained message is set
-  # to true. When a client subscribes to a topic with retained message set to true, it will
-  # always receive the last published message.
-  uplink_retained_message=false
-  join_retained_message=false
-  ack_retained_message=false
-  error_retained_message=false
-  status_retained_message=false
-  location_retained_message=false
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="tcp://localhost:1883"
@@ -252,58 +215,6 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   tls_key=""
 
 
-  # AWS Simple Notification Service (SNS)
-  [application_server.integration.aws_sns]
-  # AWS region.
-  #
-  # Example: "eu-west-1".
-  # See also: https://docs.aws.amazon.com/general/latest/gr/rande.html.
-  aws_region=""
-
-  # AWS Access Key ID.
-  aws_access_key_id=""
-
-  # AWS Secret Access Key.
-  aws_secret_access_key=""
-
-  # Topic ARN (SNS).
-  topic_arn=""
-
-
-  # Azure Service-Bus integration.
-  [application_server.integration.azure_service_bus]
-  # Connection string.
-  #
-  # The connection string can be found / created in the Azure console under
-  # Settings -> Shared access policies. The policy must contain Manage & Send.
-  connection_string=""
-
-  # Publish mode.
-  #
-  # Select either "topic", or "queue".
-  publish_mode=""
-
-  # Publish name.
-  #
-  # The name of the topic or queue.
-  publish_name=""
-
-
-  # Google Cloud Pub/Sub integration.
-  [application_server.integration.gcp_pub_sub]
-  # Path to the IAM service-account credentials file.
-  #
-  # Note: this service-account must have the following Pub/Sub roles:
-  #  * Pub/Sub Editor
-  credentials_file=""
-
-  # Google Cloud project id.
-  project_id=""
-
-  # Pub/Sub topic name.
-  topic_name=""
-
-
   # Settings for the "internal api"
   #
   # This is the API used by LoRa Server to communicate with LoRa App Server
@@ -338,22 +249,15 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
   # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
   bind="0.0.0.0:8080"
 
-  # http server TLS certificate (optional)
+  # http server TLS certificate
   tls_cert=""
 
-  # http server TLS key (optional)
+  # http server TLS key
   tls_key=""
 
   # JWT secret used for api authentication / authorization
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret=""
-
-  # Allow origin header (CORS).
-  #
-  # Set this to allows cross-domain communication from the browser (CORS).
-  # Example value: https://example.com.
-  # When left blank (default), CORS will not be used.
-  cors_allow_origin=""
 
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users=false
@@ -369,20 +273,13 @@ id="6d5db27e-4ce2-4b2b-b5d7-91f069397978"
 # ip:port to bind the join-server api interface to
 bind="0.0.0.0:8003"
 
-# CA certificate (optional).
-#
-# When set, the server requires a client-certificate and will validate this
-# certificate on incoming requests.
+# ca certificate used by the join-server api server
 ca_cert=""
 
-# TLS server-certificate (optional).
-#
-# Set this to enable TLS.
+# tls certificate used by the join-server api server (optional)
 tls_cert=""
 
-# TLS server-certificate key (optional).
-#
-# Set this to enable TLS.
+# tls key used by the join-server api server (optional)
 tls_key=""
 
 
@@ -419,7 +316,7 @@ tls_key=""
 
   # # Key Encryption Key.
   # kek="01020304050607080102030405060708"
-{{< /highlight >}}
+```
 
 ## Securing the application-server internal API
 
@@ -441,26 +338,24 @@ In order to protect the join-server API (`[join_server]`) against
 unauthorized access and to encrypt all communication, it is advised to use TLS
 certificates. Once the `ca_cert`, `tls_cert` and `tls_key` are
 set, the API will enforce client certificate validation on all incoming connections.
-When the `ca_cert` is left blank, TLS will still be configured, but the server
-will not require and validate the client-certificate.
 
 Please note that you also need to configure LoRa Server so that it uses a
 client certificate for its join-server API client. See
 [LoRa Server configuration](https://docs.loraserver.io/loraserver/install/config/).
 
-## Securing the web-interface and public API
+## Web-interface and public API
 
-The web-interface and public api (`[application_server.public_api]`) can be
-secured using a TLS certificate and key. Once the `tls_cert` and `tls_key`
-are set (`[application_server.external_api]`), TLS will be activated.
+The web-interface and public api (`[application_server.public_api]`) must be
+secured by a TLS certificate and key, as this allows to run the gRPC and RESTful
+JSON api together on one port.
 
 ### Self-signed certificate
 
 A self-signed certificate can be generated with the following command:
 
-{{<highlight bash>}}
+```bash
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 90 -nodes
-{{< /highlight >}}
+```
 
 ### Let's Encrypt
 
@@ -468,6 +363,6 @@ For generating a certificate with [Let's Encrypt](https://letsencrypt.org/),
 first follow the [getting started](https://letsencrypt.org/getting-started/)
 instructions. When the `letsencrypt` cli tool has been installed, execute:
 
-{{<highlight bash>}}
+```bash
 letsencrypt certonly --standalone -d DOMAINNAME.HERE 
-{{< /highlight >}}
+```

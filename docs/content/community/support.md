@@ -4,7 +4,6 @@ menu:
     main:
         parent: community
         weight: 1
-description: Where to report bugs, discuss new features and get support from the community.
 ---
 
 # Support

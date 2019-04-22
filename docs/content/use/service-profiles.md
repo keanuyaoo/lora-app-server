@@ -4,8 +4,6 @@ menu:
     main:
         parent: use
         weight: 5
-toc: false
-description: Manage service-profile, defining the features that organizations are allowed to use on a connected network-server.
 ---
 
 # Service-profile management
@@ -40,6 +38,6 @@ Fields marked with an **X** are implemented by LoRa (App) Server.
 - [ ] **PRAllowed** Passive Roaming allowed
 - [ ] **HRAllowed** Handover Roaming allowed
 - [ ] **RAAllowed** Roaming Activation allowed
-- [X] **NwkGeoLoc** Enable network geolocation service
+- [ ] **NwkGeoLoc** Enable network geolocation service
 - [ ] **TargetPER** Target Packet Error Rate
 - [ ] **MinGWDiversity** Minimum number of receiving GWs (informative)

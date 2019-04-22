@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/brocaar/lora-app-server/internal/backend/networkserver"
 	"github.com/brocaar/lora-app-server/internal/config"
 	"github.com/brocaar/loraserver/api/ns"
 	"github.com/brocaar/lorawan"
@@ -20,22 +19,17 @@ import (
 
 // Device defines a LoRaWAN device.
 type Device struct {
-	DevEUI                    lorawan.EUI64 `db:"dev_eui"`
-	CreatedAt                 time.Time     `db:"created_at"`
-	UpdatedAt                 time.Time     `db:"updated_at"`
-	LastSeenAt                *time.Time    `db:"last_seen_at"`
-	ApplicationID             int64         `db:"application_id"`
-	DeviceProfileID           uuid.UUID     `db:"device_profile_id"`
-	Name                      string        `db:"name"`
-	Description               string        `db:"description"`
-	SkipFCntCheck             bool          `db:"-"`
-	ReferenceAltitude         float64       `db:"-"`
-	DeviceStatusBattery       *float32      `db:"device_status_battery"`
-	DeviceStatusMargin        *int          `db:"device_status_margin"`
-	DeviceStatusExternalPower bool          `db:"device_status_external_power_source"`
-	Latitude                  *float64      `db:"latitude"`
-	Longitude                 *float64      `db:"longitude"`
-	Altitude                  *float64      `db:"altitude"`
+	DevEUI              lorawan.EUI64 `db:"dev_eui"`
+	CreatedAt           time.Time     `db:"created_at"`
+	UpdatedAt           time.Time     `db:"updated_at"`
+	LastSeenAt          *time.Time    `db:"last_seen_at"`
+	ApplicationID       int64         `db:"application_id"`
+	DeviceProfileID     uuid.UUID     `db:"device_profile_id"`
+	Name                string        `db:"name"`
+	Description         string        `db:"description"`
+	SkipFCntCheck       bool          `db:"-"`
+	DeviceStatusBattery *int          `db:"device_status_battery"`
+	DeviceStatusMargin  *int          `db:"device_status_margin"`
 }
 
 // DeviceListItem defines the Device as list item.
@@ -89,12 +83,8 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 			description,
 			device_status_battery,
 			device_status_margin,
-			device_status_external_power_source,
-			last_seen_at,
-			latitude,
-			longitude,
-			altitude
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+			last_seen_at
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		d.DevEUI[:],
 		d.CreatedAt,
 		d.UpdatedAt,
@@ -104,11 +94,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		d.Description,
 		d.DeviceStatusBattery,
 		d.DeviceStatusMargin,
-		d.DeviceStatusExternalPower,
 		d.LastSeenAt,
-		d.Latitude,
-		d.Longitude,
-		d.Altitude,
 	)
 	if err != nil {
 		return handlePSQLError(Insert, err, "insert error")
@@ -124,7 +110,7 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 		return errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}
@@ -136,12 +122,11 @@ func CreateDevice(db sqlx.Ext, d *Device) error {
 
 	_, err = nsClient.CreateDevice(context.Background(), &ns.CreateDeviceRequest{
 		Device: &ns.Device{
-			DevEui:            d.DevEUI[:],
-			DeviceProfileId:   d.DeviceProfileID.Bytes(),
-			ServiceProfileId:  app.ServiceProfileID.Bytes(),
-			RoutingProfileId:  rpID.Bytes(),
-			SkipFCntCheck:     d.SkipFCntCheck,
-			ReferenceAltitude: d.ReferenceAltitude,
+			DevEui:           d.DevEUI[:],
+			DeviceProfileId:  d.DeviceProfileID.Bytes(),
+			ServiceProfileId: app.ServiceProfileID.Bytes(),
+			RoutingProfileId: rpID.Bytes(),
+			SkipFCntCheck:    d.SkipFCntCheck,
 		},
 	})
 	if err != nil {
@@ -181,7 +166,7 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate, localOnly bool)
 		return d, errors.Wrap(err, "get network-server error")
 	}
 
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return d, errors.Wrap(err, "get network-server client error")
 	}
@@ -195,7 +180,6 @@ func GetDevice(db sqlx.Queryer, devEUI lorawan.EUI64, forUpdate, localOnly bool)
 
 	if resp.Device != nil {
 		d.SkipFCntCheck = resp.Device.SkipFCntCheck
-		d.ReferenceAltitude = resp.Device.ReferenceAltitude
 	}
 
 	return d, nil
@@ -326,11 +310,7 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			description = $6,
 			device_status_battery = $7,
 			device_status_margin = $8,
-			last_seen_at = $9,
-			latitude = $10,
-			longitude = $11,
-			altitude = $12,
-			device_status_external_power_source = $13
+			last_seen_at = $9
         where
             dev_eui = $1`,
 		d.DevEUI[:],
@@ -342,10 +322,6 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 		d.DeviceStatusBattery,
 		d.DeviceStatusMargin,
 		d.LastSeenAt,
-		d.Latitude,
-		d.Longitude,
-		d.Altitude,
-		d.DeviceStatusExternalPower,
 	)
 	if err != nil {
 		return handlePSQLError(Update, err, "update error")
@@ -370,7 +346,7 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 			return errors.Wrap(err, "get network-server error")
 		}
 
-		nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+		nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 		if err != nil {
 			return errors.Wrap(err, "get network-server client error")
 		}
@@ -382,12 +358,11 @@ func UpdateDevice(db sqlx.Ext, d *Device, localOnly bool) error {
 
 		_, err = nsClient.UpdateDevice(context.Background(), &ns.UpdateDeviceRequest{
 			Device: &ns.Device{
-				DevEui:            d.DevEUI[:],
-				DeviceProfileId:   d.DeviceProfileID.Bytes(),
-				ServiceProfileId:  app.ServiceProfileID.Bytes(),
-				RoutingProfileId:  rpID.Bytes(),
-				SkipFCntCheck:     d.SkipFCntCheck,
-				ReferenceAltitude: d.ReferenceAltitude,
+				DevEui:           d.DevEUI[:],
+				DeviceProfileId:  d.DeviceProfileID.Bytes(),
+				ServiceProfileId: app.ServiceProfileID.Bytes(),
+				RoutingProfileId: rpID.Bytes(),
+				SkipFCntCheck:    d.SkipFCntCheck,
 			},
 		})
 		if err != nil {
@@ -422,7 +397,7 @@ func DeleteDevice(db sqlx.Ext, devEUI lorawan.EUI64) error {
 		return ErrDoesNotExist
 	}
 
-	nsClient, err := networkserver.GetPool().Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
+	nsClient, err := config.C.NetworkServer.Pool.Get(n.Server, []byte(n.CACert), []byte(n.TLSCert), []byte(n.TLSKey))
 	if err != nil {
 		return errors.Wrap(err, "get network-server client error")
 	}

@@ -22,15 +22,21 @@ test: internal/statics internal/migrations
 	@go vet $(PKGS)
 	@go test -p 1 -v $(PKGS)
 
+documentation:
+	@echo "Building documentation"
+	@mkdir -p dist/docs
+	@cd docs && hugo
+	@cd docs/public/ && tar -pczf ../../dist/lora-app-server-documentation.tar.gz .
+
 dist: ui/build internal/statics internal/migrations
 	@goreleaser
-	mkdir -p dist/upload/tar
-	mkdir -p dist/upload/deb
-	mv dist/*.tar.gz dist/upload/tar
-	mv dist/*.deb dist/upload/deb
 
-snapshot: ui/build internal/statics internal/migrations
+build-snapshot: ui/build internal/statics internal/migrations
 	@goreleaser --snapshot
+
+package-deb: package
+	@echo "Building deb package"
+	@cd packaging && TARGET=deb ./package.sh
 
 ui/build:
 	@echo "Building ui"
@@ -39,9 +45,7 @@ ui/build:
 
 api:
 	@echo "Generating API code from .proto files"
-	@go mod vendor
 	@go generate api/api.go
-	@rm -rf vendor/
 
 internal/statics internal/migrations: static/swagger/api.swagger.json
 	@echo "Generating static files"
@@ -56,16 +60,20 @@ static/swagger/api.swagger.json:
 
 # shortcuts for development
 
-dev-requirements:
-	go install golang.org/x/lint/golint
-	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-	go install github.com/golang/protobuf/protoc-gen-go
-	go install github.com/elazarl/go-bindata-assetfs/go-bindata-assetfs
-	go install github.com/jteeuwen/go-bindata/go-bindata
-	go install golang.org/x/tools/cmd/stringer
-	go install github.com/goreleaser/goreleaser
-	go install github.com/goreleaser/nfpm
+requirements:
+	echo "Installing development tools"
+	go get -u github.com/golang/lint/golint
+	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get -u github.com/elazarl/go-bindata-assetfs/...
+	go get -u github.com/jteeuwen/go-bindata/...
+	go get -u github.com/kisielk/errcheck
+	go get -u github.com/smartystreets/goconvey
+	go get -u golang.org/x/tools/cmd/stringer
+	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/goreleaser/goreleaser
+	dep ensure -v
 
 ui-requirements:
 	@echo "Installing UI requirements"

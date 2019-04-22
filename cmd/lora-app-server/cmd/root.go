@@ -3,8 +3,6 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
-	"reflect"
-	"strings"
 	"time"
 
 	"github.com/brocaar/lora-app-server/internal/config"
@@ -34,6 +32,10 @@ func init() {
 	// bind flag to config vars
 	viper.BindPFlag("general.log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 
+	// for debian install script
+	viper.BindEnv("application_server.external_api.tls_cert", "HTTP_TLS_CERT")
+	viper.BindEnv("application_server.external_api.tls_key", "HTTP_TLS_KEY")
+
 	// defaults
 	viper.SetDefault("general.password_hash_iterations", 100000)
 	viper.SetDefault("postgresql.dsn", "postgres://localhost/loraserver_as?sslmode=disable")
@@ -53,10 +55,7 @@ func init() {
 	viper.SetDefault("application_server.integration.mqtt.ack_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/ack")
 	viper.SetDefault("application_server.integration.mqtt.error_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/error")
 	viper.SetDefault("application_server.integration.mqtt.status_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/status")
-	viper.SetDefault("application_server.integration.mqtt.location_topic_template", "application/{{ .ApplicationID }}/device/{{ .DevEUI }}/location")
 	viper.SetDefault("application_server.integration.mqtt.clean_session", true)
-	viper.SetDefault("application_server.integration.enabled", []string{"mqtt"})
-	viper.SetDefault("application_server.codec.js.max_execution_time", 100*time.Millisecond)
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
@@ -95,38 +94,7 @@ func initConfig() {
 		}
 	}
 
-	viperBindEnvs(config.C)
-
 	if err := viper.Unmarshal(&config.C); err != nil {
 		log.WithError(err).Fatal("unmarshal config error")
-	}
-
-	// backwards compatibility
-	if config.C.ApplicationServer.Integration.Backend != "" {
-		config.C.ApplicationServer.Integration.Enabled = []string{config.C.ApplicationServer.Integration.Backend}
-	}
-}
-
-func viperBindEnvs(iface interface{}, parts ...string) {
-	ifv := reflect.ValueOf(iface)
-	ift := reflect.TypeOf(iface)
-	for i := 0; i < ift.NumField(); i++ {
-		v := ifv.Field(i)
-		t := ift.Field(i)
-		tv, ok := t.Tag.Lookup("mapstructure")
-		if !ok {
-			tv = strings.ToLower(t.Name)
-		}
-		if tv == "-" {
-			continue
-		}
-
-		switch v.Kind() {
-		case reflect.Struct:
-			viperBindEnvs(v.Interface(), append(parts, tv)...)
-		default:
-			key := strings.Join(append(parts, tv), ".")
-			viper.BindEnv(key)
-		}
 	}
 }

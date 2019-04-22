@@ -78,7 +78,7 @@ class ApplicationLayout extends Component {
   }
 
   deleteApplication() {
-    if (window.confirm("Are you sure you want to delete this application? This will also delete all devices part of this application.")) {
+    if (window.confirm("Are you sure you want to delete this application?")) {
       ApplicationStore.delete(this.props.match.params.applicationID, resp => {
         this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications`);
       });
@@ -135,6 +135,7 @@ class ApplicationLayout extends Component {
             onChange={this.onChangeTab}
             indicatorColor="primary"
             className={this.props.classes.tabs}
+            fullWidth
           >
             <Tab label="Devices" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`} />
             {this.state.admin && <Tab label="Application configuration" component={Link} to={`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}/edit`} />}

@@ -8,8 +8,6 @@ import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 
 import FormComponent from "../../classes/FormComponent";
-import AESKeyField from "../../components/AESKeyField";
-import DevAddrField from "../../components/DevAddrField";
 import Form from "../../components/Form";
 import DeviceStore from "../../stores/DeviceStore";
 import theme from "../../theme";
@@ -22,15 +20,52 @@ const styles = {
 };
 
 
-class LW10DeviceActivationForm extends FormComponent {
+class DeviceActivationForm extends FormComponent {
   constructor() {
     super();
     this.getRandomDevAddr = this.getRandomDevAddr.bind(this);
   }
 
-  getRandomDevAddr(cb) {
+  getRandomDevAddr(e) {
+    e.preventDefault();
+
+    if (this.props.disabled) {
+      return;
+    }
+
     DeviceStore.getRandomDevAddr(this.props.match.params.devEUI, resp => {
-      cb(resp.devAddr);
+      let object = this.state.object;
+      object.devAddr = resp.devAddr;
+      this.setState({
+        object: object,
+      });
+    });
+  }
+
+  getRandomKey(field, e) {
+    e.preventDefault();
+
+    if (this.props.disabled) {
+      return;
+    }
+
+    let object = this.state.object;
+    let key = "";
+    const possible = 'abcdef0123456789';
+
+    for(let i = 0; i < 32; i++){
+      key += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+
+    object[field] = key;
+
+    if (field === "nwkSEncKey" && this.props.deviceProfile.macVersion.startsWith("1.0")) {
+      object["sNwkSIntKey"] = key;
+      object["fNwkSIntKey"] = key;
+    }
+
+    this.setState({
+      object: object,
     });
   }
 
@@ -44,145 +79,80 @@ class LW10DeviceActivationForm extends FormComponent {
         submitLabel={this.props.submitLabel}
         onSubmit={this.onSubmit}
       >
-        <DevAddrField
+        <TextField
           id="devAddr"
           label="Device address"
+          helperText={<span><a href="#random" onClick={this.getRandomDevAddr} className={this.props.classes.link}>Generate random address</a>.</span>}
           margin="normal"
           value={this.state.object.devAddr || ""}
+          placeholder="00000000"
           onChange={this.onChange}
-          disabled={this.props.disabled}
-          randomFunc={this.getRandomDevAddr}
-          fullWidth
-          required
-          random
-        />
-        <AESKeyField
-          id="nwkSEncKey"
-          label="Network session key (LoRaWAN 1.0)"
-          margin="normal"
-          value={this.state.object.nwkSEncKey || ""}
-          onChange={this.onChange}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{8}",
+          }}
           disabled={this.props.disabled}
           fullWidth
           required
-          random
-        />
-        <AESKeyField
-          id="appSKey"
-          label="Application session key (LoRaWAN 1.0)"
-          margin="normal"
-          value={this.state.object.appSKey || ""}
-          onChange={this.onChange}
-          disabled={this.props.disabled}
-          required
-          fullWidth
-          random
         />
         <TextField
-          id="fCntUp"
-          label="Uplink frame-counter"
-          margin="normal"
-          type="number"
-          value={this.state.object.fCntUp || 0}
-          onChange={this.onChange}
-          disabled={this.props.disabled}
-          required
-          fullWidth
-        />
-        <TextField
-          id="nFCntDown"
-          label="Downlink frame-counter (network)"
-          margin="normal"
-          type="number"
-          value={this.state.object.nFCntDown || 0}
-          onChange={this.onChange}
-          disabled={this.props.disabled}
-          required
-          fullWidth
-        />
-      </Form>
-    );
-  }
-}
-
-
-class LW11DeviceActivationForm extends FormComponent {
-  constructor() {
-    super();
-    this.getRandomDevAddr = this.getRandomDevAddr.bind(this);
-  }
-
-  getRandomDevAddr(cb) {
-    DeviceStore.getRandomDevAddr(this.props.match.params.devEUI, resp => {
-      cb(resp.devAddr);
-    });
-  }
-
-  render() {
-    if (this.state.object === undefined) {
-      return(<div></div>);
-    }
-
-    return(
-      <Form
-        submitLabel={this.props.submitLabel}
-        onSubmit={this.onSubmit}
-      >
-        <DevAddrField
-          id="devAddr"
-          label="Device address"
-          margin="normal"
-          value={this.state.object.devAddr || ""}
-          onChange={this.onChange}
-          disabled={this.props.disabled}
-          randomFunc={this.getRandomDevAddr}
-          fullWidth
-          required
-          random
-        />
-        <AESKeyField
           id="nwkSEncKey"
           label="Network session encryption key"
+          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "nwkSEncKey")} className={this.props.classes.link}>Generate random key</a>. For LoRaWAN 1.0 devices, this value holds the NwkSKey.</span>}
           margin="normal"
           value={this.state.object.nwkSEncKey || ""}
+          placeholder="00000000000000000000000000000000"
           onChange={this.onChange}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{32}",
+          }}
           disabled={this.props.disabled}
           fullWidth
           required
-          random
         />
-        <AESKeyField
+        <TextField
           id="sNwkSIntKey"
           label="Serving network session integrity key"
           margin="normal"
           value={this.state.object.sNwkSIntKey || ""}
+          placeholder="00000000000000000000000000000000"
+          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "sNwkSIntKey")} className={this.props.classes.link}>Generate random key</a>. For LoRaWAN 1.0 devices, this value holds the NwkSKey.</span>}
           onChange={this.onChange}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{32}",
+          }}
           disabled={this.props.disabled}
           fullWidth
           required
-          random
         />
-        <AESKeyField
+        <TextField
           id="fNwkSIntKey"
           label="Forwarding network session integrity key"
           margin="normal"
           value={this.state.object.fNwkSIntKey || ""}
+          placeholder="00000000000000000000000000000000"
+          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "fNwkSIntKey")} className={this.props.classes.link}>Generate random key</a>. For LoRaWAN 1.0 devices, this value holds the NwkSKey.</span>}
           onChange={this.onChange}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{32}",
+          }}
           disabled={this.props.disabled}
           fullWidth
           required
-          random
         />
-        <AESKeyField
+        <TextField
           id="appSKey"
           label="Application session key"
           margin="normal"
           value={this.state.object.appSKey || ""}
+          placeholder="00000000000000000000000000000000"
+          helperText={<span><a href="#random" onClick={this.getRandomKey.bind(this, "appSKey")} className={this.props.classes.link}>Generate random key</a>.</span>}
           onChange={this.onChange}
+          inputProps={{
+            pattern: "[A-Fa-f0-9]{32}",
+          }}
           disabled={this.props.disabled}
           required
           fullWidth
-          random
         />
         <TextField
           id="fCntUp"
@@ -210,6 +180,7 @@ class LW11DeviceActivationForm extends FormComponent {
           id="aFCntDown"
           label="Downlink frame-counter (application)"
           margin="normal"
+          helperText="This frame-counter is only used for LoRaWAN 1.1+ devices."
           type="number"
           value={this.state.object.aFCntDown || 0}
           onChange={this.onChange}
@@ -223,8 +194,7 @@ class LW11DeviceActivationForm extends FormComponent {
 }
 
 
-LW10DeviceActivationForm = withStyles(styles)(LW10DeviceActivationForm);
-LW11DeviceActivationForm = withStyles(styles)(LW11DeviceActivationForm);
+DeviceActivationForm = withStyles(styles)(DeviceActivationForm);
 
 
 class DeviceActivation extends Component {
@@ -236,37 +206,24 @@ class DeviceActivation extends Component {
   
   componentDidMount() {
     DeviceStore.getActivation(this.props.match.params.devEUI, resp => {
-      if (resp === null) {
-        this.setState({
-          deviceActivation: {
-            deviceActivation: {},
-          },
-        });
-      } else {
-        this.setState({
-          deviceActivation: resp,
-        });
-      }
+      this.setState({
+        deviceActivation: resp,
+      });
     });
   }
 
   onSubmit(deviceActivation) {
     let act = deviceActivation;
     act.devEUI = this.props.match.params.devEUI;
-
-    if (this.props.deviceProfile.macVersion.startsWith("1.0")) {
-      act.fNwkSIntKey = act.nwkSEncKey;
-      act.sNwkSIntKey = act.nwkSEncKey;
-    }
-
     DeviceStore.activate(act, resp => {
       this.props.history.push(`/organizations/${this.props.match.params.organizationID}/applications/${this.props.match.params.applicationID}`);
     });
   }
 
   render() {
-    if (this.state.deviceActivation === undefined) {
-      return null;
+    let object;
+    if (this.state.deviceActivation !== undefined) {
+      object = this.state.deviceActivation.deviceActivation;
     }
 
     let submitLabel = null;
@@ -275,24 +232,16 @@ class DeviceActivation extends Component {
     }
 
     let showForm = false;
-    if (!this.props.deviceProfile.supportsJoin || (this.props.deviceProfile.supportsJoin && this.state.deviceActivation.deviceActivation.devAddr !== undefined)) {
+    if (!this.props.deviceProfile.supportsJoin || (this.props.deviceProfile.supportsJoin && object)) {
       showForm = true;
     }
 
     return(
       <Card>
         <CardContent>
-          {showForm && this.props.deviceProfile.macVersion.startsWith("1.0") && <LW10DeviceActivationForm
+          {showForm && <DeviceActivationForm
             submitLabel={submitLabel}
-            object={this.state.deviceActivation.deviceActivation}
-            onSubmit={this.onSubmit}
-            disabled={this.props.deviceProfile.supportsJoin}
-            match={this.props.match}
-            deviceProfile={this.props.deviceProfile}
-          />}
-          {showForm && this.props.deviceProfile.macVersion.startsWith("1.1") && <LW11DeviceActivationForm
-            submitLabel={submitLabel}
-            object={this.state.deviceActivation.deviceActivation}
+            object={object}
             onSubmit={this.onSubmit}
             disabled={this.props.deviceProfile.supportsJoin}
             match={this.props.match}
