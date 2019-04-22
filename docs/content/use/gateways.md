@@ -4,6 +4,7 @@ menu:
     main:
         parent: use
         weight: 10
+description: Manage gateways, show gateway statistics and configure the fine-timestamp decryption keys.
 ---
 
 # Gateway management
@@ -33,3 +34,14 @@ is out-of-date. Gateway-profiles can be configured by clicking on
 Note that when a gateway-profile is assigned to a gateway, you must also
 configure the [LoRa Gateway Bridge configuration](/lora-gateway-bridge/install/config/)
 in order to handle configuration updates.
+
+## Gateway board configuration
+
+For gateways implementing the v2 reference design which support geolocation
+capabilities, it is possible to configure one or multiple boards. This allows
+you to configure the FPGA ID and fine-timestamp AES decryption key per
+board.
+
+When the fine-timestamp AES decryption key is configured, LoRa Server will
+automatically decrypt the fine-timestamp once it receives an uplink
+frame from this gateway.

@@ -34,7 +34,7 @@ Payload data is prefixed by `device_frmpayload_data`.
 
 Example:
 
-```json
+{{<highlight json>}}
 {
     "object": {
         "temperature_sensor": {
@@ -42,7 +42,7 @@ Example:
         }
     }
 }
-```
+{{< /highlight >}}
 
 The above will translate to the measurement `device_frmpayload_data_temperature_sensor_1`.
 
@@ -58,14 +58,14 @@ the `object`), both measurements are treated as a single geolocation measurement
 
 Example:
 
-```json
+{{<highlight json>}}
 {
     "object": {
         "latitude": 1.123,
         "longitude": 2.123
     }
 }
-```
+{{< /highlight >}}
 
 The above will translate to the measurement `device_frmpayload_data_location`
 with values `latitude`, `longitude` and `geohash` (see also [Geohash](https://en.wikipedia.org/wiki/Geohash)).
@@ -83,7 +83,8 @@ For aggregation, each measurement will have the following tags:
 
 For analyzing and monitoring the usage of spreading-factors, channels, etc.
 the InfluxDB integration will also write a measurement named `device_uplink`
-with a counter value `1`, with the following tags for aggregation:
+with as values a counter `value` 1, `rssi`, `snr` and `f_cnt`. For Aggregation,
+the following tags are available:
 
 * `application_name`
 * `device_name`
@@ -91,11 +92,21 @@ with a counter value `1`, with the following tags for aggregation:
 * `dr`
 * `frequency`
 
-## Device battery status
+## Device battery status (deprecated)
 
 When this information is available, the device battery status will be written
 to the measurement name `device_status_battery`. For aggregation, the following
 tags are available:
+
+* `application_name`
+* `device_name`
+* `dev_eui`
+
+## Device battery level
+
+When this information is available, the device battery level (percentage)
+will be written to the measurement name `device_status_battery_level`. For
+aggregation, the following tags are available:
 
 * `application_name`
 * `device_name`

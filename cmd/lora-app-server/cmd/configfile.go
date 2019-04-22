@@ -94,15 +94,37 @@ idle_timeout="{{ .Redis.IdleTimeout }}"
 id="{{ .ApplicationServer.ID }}"
 
 
-  # MQTT integration configuration used for publishing (data) events
-  # and scheduling downlink application payloads.
-  # Next to this integration which is always available, the user is able to
-  # configure additional per-application integrations.
+  # JavaScript codec settings.
+  [application_server.codec.js]
+  # Maximum execution time.
+  max_execution_time="{{ .ApplicationServer.Codec.JS.MaxExecutionTime }}"
+
+
+  # Integration configures the data integration.
+  #
+  # This is the data integration which is available for all applications,
+  # besides the extra integrations that can be added on a per-application
+  # basis.
+  [application_server.integration]
+  # Enabled integrations.
+  #
+  # Enabled integrations are enabled for all applications. Multiple
+  # integrations can be configured.
+  # Do not forget to configure the related configuration section below for
+  # the enabled integrations. Integrations that can be enabled are:
+  # * mqtt              - MQTT broker
+  # * aws_sns           - AWS Simple Notification Service (SNS)
+  # * azure_service_bus - Azure Service-Bus
+  # * gcp_pub_sub       - Google Cloud Pub/Sub
+  enabled=[{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}{{ range $index, $elm := .ApplicationServer.Integration.Enabled }}{{ if $index }}", "{{ end }}{{ $elm }}{{ end }}{{ if .ApplicationServer.Integration.Enabled|len }}"{{ end }}]
+
+
+  # MQTT integration backend.
   [application_server.integration.mqtt]
   # MQTT topic templates for the different MQTT topics.
   #
   # The meaning of these topics are documented at:
-  # https://docs.loraserver.io/lora-app-server/integrate/data/
+  # https://www.loraserver.io/lora-app-server/integrate/data/
   #
   # The following substitutions can be used:
   # * "{{ "{{ .ApplicationID }}" }}" for the application id.
@@ -116,6 +138,19 @@ id="{{ .ApplicationServer.ID }}"
   ack_topic_template="{{ .ApplicationServer.Integration.MQTT.AckTopicTemplate }}"
   error_topic_template="{{ .ApplicationServer.Integration.MQTT.ErrorTopicTemplate }}"
   status_topic_template="{{ .ApplicationServer.Integration.MQTT.StatusTopicTemplate }}"
+  location_topic_template="{{ .ApplicationServer.Integration.MQTT.LocationTopicTemplate }}"
+
+  # Retained messages configuration.
+  #
+  # The MQTT broker will store the last publised message, when retained message is set
+  # to true. When a client subscribes to a topic with retained message set to true, it will
+  # always receive the last published message.
+  uplink_retained_message={{ .ApplicationServer.Integration.MQTT.UplinkRetainedMessage }}
+  join_retained_message={{ .ApplicationServer.Integration.MQTT.JoinRetainedMessage }}
+  ack_retained_message={{ .ApplicationServer.Integration.MQTT.AckRetainedMessage }}
+  error_retained_message={{ .ApplicationServer.Integration.MQTT.ErrorRetainedMessage }}
+  status_retained_message={{ .ApplicationServer.Integration.MQTT.StatusRetainedMessage }}
+  location_retained_message={{ .ApplicationServer.Integration.MQTT.LocationRetainedMessage }}
 
   # MQTT server (e.g. scheme://host:port where scheme is tcp, ssl or ws)
   server="{{ .ApplicationServer.Integration.MQTT.Server }}"
@@ -164,6 +199,58 @@ id="{{ .ApplicationServer.ID }}"
   tls_key="{{ .ApplicationServer.Integration.MQTT.TLSKey }}"
 
 
+  # AWS Simple Notification Service (SNS)
+  [application_server.integration.aws_sns]
+  # AWS region.
+  #
+  # Example: "eu-west-1".
+  # See also: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+  aws_region="{{ .ApplicationServer.Integration.AWSSNS.AWSRegion }}"
+
+  # AWS Access Key ID.
+  aws_access_key_id="{{ .ApplicationServer.Integration.AWSSNS.AWSAccessKeyID }}"
+
+  # AWS Secret Access Key.
+  aws_secret_access_key="{{ .ApplicationServer.Integration.AWSSNS.AWSSecretAccessKey }}"
+
+  # Topic ARN (SNS).
+  topic_arn="{{ .ApplicationServer.Integration.AWSSNS.TopicARN }}"
+
+
+  # Azure Service-Bus integration.
+  [application_server.integration.azure_service_bus]
+  # Connection string.
+  #
+  # The connection string can be found / created in the Azure console under
+  # Settings -> Shared access policies. The policy must contain Manage & Send.
+  connection_string="{{ .ApplicationServer.Integration.AzureServiceBus.ConnectionString }}"
+
+  # Publish mode.
+  #
+  # Select either "topic", or "queue".
+  publish_mode="{{ .ApplicationServer.Integration.AzureServiceBus.PublishMode }}"
+
+  # Publish name.
+  #
+  # The name of the topic or queue.
+  publish_name="{{ .ApplicationServer.Integration.AzureServiceBus.PublishName }}"
+
+
+  # Google Cloud Pub/Sub integration.
+  [application_server.integration.gcp_pub_sub]
+  # Path to the IAM service-account credentials file.
+  #
+  # Note: this service-account must have the following Pub/Sub roles:
+  #  * Pub/Sub Editor
+  credentials_file="{{ .ApplicationServer.Integration.GCPPubSub.CredentialsFile }}"
+
+  # Google Cloud project id.
+  project_id="{{ .ApplicationServer.Integration.GCPPubSub.ProjectID }}"
+
+  # Pub/Sub topic name.
+  topic_name="{{ .ApplicationServer.Integration.GCPPubSub.TopicName }}"
+
+
   # Settings for the "internal api"
   #
   # This is the API used by LoRa Server to communicate with LoRa App Server
@@ -198,15 +285,22 @@ id="{{ .ApplicationServer.ID }}"
   # ip:port to bind the (user facing) http server to (web-interface and REST / gRPC api)
   bind="{{ .ApplicationServer.ExternalAPI.Bind }}"
 
-  # http server TLS certificate
+  # http server TLS certificate (optional)
   tls_cert="{{ .ApplicationServer.ExternalAPI.TLSCert }}"
 
-  # http server TLS key
+  # http server TLS key (optional)
   tls_key="{{ .ApplicationServer.ExternalAPI.TLSKey }}"
 
   # JWT secret used for api authentication / authorization
   # You could generate this by executing 'openssl rand -base64 32' for example
   jwt_secret="{{ .ApplicationServer.ExternalAPI.JWTSecret }}"
+
+  # Allow origin header (CORS).
+  #
+  # Set this to allows cross-domain communication from the browser (CORS).
+  # Example value: https://example.com.
+  # When left blank (default), CORS will not be used.
+  cors_allow_origin="{{ .ApplicationServer.ExternalAPI.CORSAllowOrigin }}"
 
   # when set, existing users can't be re-assigned (to avoid exposure of all users to an organization admin)"
   disable_assign_existing_users={{ .ApplicationServer.ExternalAPI.DisableAssignExistingUsers }}
@@ -234,20 +328,27 @@ id="{{ .ApplicationServer.ID }}"
 # ip:port to bind the join-server api interface to
 bind="{{ .JoinServer.Bind }}"
 
-# ca certificate used by the join-server api server
+# CA certificate (optional).
+#
+# When set, the server requires a client-certificate and will validate this
+# certificate on incoming requests.
 ca_cert="{{ .JoinServer.CACert }}"
 
-# tls certificate used by the join-server api server (optional)
+# TLS server-certificate (optional).
+#
+# Set this to enable TLS.
 tls_cert="{{ .JoinServer.TLSCert }}"
 
-# tls key used by the join-server api server (optional)
+# TLS server-certificate key (optional).
+#
+# Set this to enable TLS.
 tls_key="{{ .JoinServer.TLSKey }}"
 
 
 # Key Encryption Key (KEK) configuration.
 #
 # The KEK meganism is used to encrypt the session-keys sent from the
-# join-server to the network-server. 
+# join-server to the network-server.
 #
 # The LoRa App Server join-server will use the NetID of the requesting
 # network-server as the KEK label. When no such label exists in the set,

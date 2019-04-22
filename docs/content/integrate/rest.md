@@ -4,9 +4,10 @@ menu:
     main:
         parent: integrate
         weight: 6
+description: Information about integrating with the RESTful JSON API.
 ---
 
-# RESfful JSON API
+# RESTful JSON API
 
 Besides the [gRPC]({{< relref "grpc.md" >}}) API, LoRa App Server also provides
 a JSON REST API. As this is technically a "gateway" between the gRPC API,

@@ -4,6 +4,7 @@ menu:
     main:
         parent: community
         weight: 3
+description: How to get the LoRa App Server source and how to compile this into an executable binary.
 ---
 
 # LoRa App Server source
@@ -19,9 +20,9 @@ The easiest way to get started is by using the provided
 shell within the docker-compose environment, execute the following command from
 the root of this project:
 
-```bash
+{{<highlight bash>}}
 docker-compose run --rm appserver bash
-```
+{{< /highlight >}}
 
 ### Without Docker
 
@@ -31,9 +32,8 @@ pre-compiled packages available):
 
 #### Go
 
-Make sure you have [Go](https://golang.org/) installed (1.10+) and that the LoRa
-App Server repository has been cloned to 
-`$GOPATH/src/github.com/brocaar/lora-app-server`.
+Make sure you have [Go](https://golang.org/) installed (1.11+). As LoRa App Server
+uses Go modules, the repository must be cloned outside the `$GOPATH`.
 
 #### Node.js
 
@@ -49,9 +49,9 @@ the GO support for Protocol Buffers [installation instructions](https://github.c
 
 A few example commands that you can run:
 
-```bash
+{{<highlight bash>}}
 # install all requirements
-make requirements ui-requirements
+make dev-requirements ui-requirements
 
 # cleanup workspace
 make clean
@@ -66,5 +66,5 @@ make test
 make build
 
 # compile snapshot builds for supported architectures (this will also compile the ui and generate the static files)
-make build-snapshot
-```
+make snapshot
+{{< /highlight >}}

@@ -21,7 +21,7 @@
         "operationId": "List",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiListDeviceResponse"
             }
@@ -83,9 +83,9 @@
         "operationId": "Create",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -110,7 +110,7 @@
         "operationId": "Get",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetDeviceResponse"
             }
@@ -134,9 +134,9 @@
         "operationId": "Delete",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -160,9 +160,33 @@
         "operationId": "GetActivation",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetDeviceActivationResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dev_eui",
+            "description": "Device EUI (HEX encoded).",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DeviceService"
+        ]
+      },
+      "delete": {
+        "summary": "Deactivate de-activates the device.",
+        "operationId": "Deactivate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
             }
           }
         },
@@ -186,9 +210,9 @@
         "operationId": "StreamEventLogs",
         "responses": {
           "200": {
-            "description": "(streaming responses)",
+            "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/definitions/apiStreamDeviceEventLogsResponse"
+              "$ref": "#/x-stream-definitions/apiStreamDeviceEventLogsResponse"
             }
           }
         },
@@ -212,9 +236,9 @@
         "operationId": "StreamFrameLogs",
         "responses": {
           "200": {
-            "description": "(streaming responses)",
+            "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/definitions/apiStreamDeviceFrameLogsResponse"
+              "$ref": "#/x-stream-definitions/apiStreamDeviceFrameLogsResponse"
             }
           }
         },
@@ -238,7 +262,7 @@
         "operationId": "GetRandomDevAddr",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetRandomDevAddrResponse"
             }
@@ -264,7 +288,7 @@
         "operationId": "GetKeys",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/apiGetDeviceKeysResponse"
             }
@@ -288,9 +312,9 @@
         "operationId": "DeleteKeys",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -314,9 +338,9 @@
         "operationId": "Update",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -348,9 +372,9 @@
         "operationId": "Activate",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -382,9 +406,9 @@
         "operationId": "CreateKeys",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -414,9 +438,9 @@
         "operationId": "UpdateKeys",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufEmpty"
+              "properties": {}
             }
           }
         },
@@ -498,6 +522,11 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Skip frame-counter checks (this is insecure, but could be helpful for debugging)."
+        },
+        "referenceAltitude": {
+          "type": "number",
+          "format": "double",
+          "description": "Reference altitude.\nWhen using geolocation, this altitude will be used as a reference\n(when supported by the geolocation-server) to increase geolocation\naccuracy."
         }
       }
     },
@@ -593,12 +622,27 @@
         "deviceStatusBattery": {
           "type": "integer",
           "format": "int64",
-          "description": "The device battery status\n0:      The end-device is connected to an external power source\n1..254: The battery level, 1 being at minimum and 254 being at maximum\n255:    The end-device was not able to measure the battery level\n256:    The device-status is not available."
+          "description": "The device battery status (deprecated, use device_status_battery_level).\n0:      The end-device is connected to an external power source\n1..254: The battery level, 1 being at minimum and 254 being at maximum\n255:    The end-device was not able to measure the battery level\n256:    The device-status is not available."
         },
         "deviceStatusMargin": {
           "type": "integer",
           "format": "int32",
           "description": "The device margin status\n-32..32: The demodulation SNR ration in dB\n256:     The device-status is not available."
+        },
+        "deviceStatusExternalPowerSource": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Device is connected to an external power source."
+        },
+        "deviceStatusBatteryLevelUnavailable": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Device battery status is unavailable."
+        },
+        "deviceStatusBatteryLevel": {
+          "type": "number",
+          "format": "float",
+          "description": "Device battery level as a percentage."
         },
         "lastSeenAt": {
           "type": "string",
@@ -676,6 +720,26 @@
       },
       "description": "Same comment as above applies to this message."
     },
+    "apiEncryptedFineTimestamp": {
+      "type": "object",
+      "properties": {
+        "aesKeyIndex": {
+          "type": "integer",
+          "format": "int64",
+          "description": "AES key index used for encrypting the fine timestamp."
+        },
+        "encryptedNS": {
+          "type": "string",
+          "format": "byte",
+          "description": "Encrypted 'main' fine-timestamp (ns precision part of the timestamp)."
+        },
+        "fpgaID": {
+          "type": "string",
+          "description": "FPGA ID."
+        }
+      },
+      "description": "this s a copy of gw.EncryptedFineTimestamp which the only change that\nthe fpga_id is of type string so that it can be returned in HEX format\ninstead of base64."
+    },
     "apiGetDeviceActivationResponse": {
       "type": "object",
       "properties": {
@@ -715,6 +779,10 @@
           "type": "integer",
           "format": "int32",
           "description": "The device margin status\n-32..32: The demodulation SNR ration in dB\n256:     The device-status is not available."
+        },
+        "location": {
+          "$ref": "#/definitions/commonLocation",
+          "description": "Device location.\nThis will set when the network-server was able to resolve the location\nusing the geolocation-server."
         }
       }
     },
@@ -862,6 +930,18 @@
         "location": {
           "$ref": "#/definitions/commonLocation",
           "description": "Location."
+        },
+        "fineTimestampType": {
+          "$ref": "#/definitions/gwFineTimestampType",
+          "description": "Fine-timestamp type."
+        },
+        "encryptedFineTimestamp": {
+          "$ref": "#/definitions/apiEncryptedFineTimestamp",
+          "description": "Encrypted fine-timestamp data."
+        },
+        "plainFineTimestamp": {
+          "$ref": "#/definitions/gwPlainFineTimestamp",
+          "description": "Plain fine-timestamp data."
         }
       },
       "description": "This is a copy of gw.UplinkRXInfo with the only change that the\ngateway_id is of type string so that we can return it as HEX encoded\ninstead of base64."
@@ -930,6 +1010,16 @@
         }
       }
     },
+    "gwFineTimestampType": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "ENCRYPTED",
+        "PLAIN"
+      ],
+      "default": "NONE",
+      "description": " - NONE: No fine-timestamp available.\n - ENCRYPTED: Encrypted fine-timestamp.\n - PLAIN: Plain fine-timestamp."
+    },
     "gwLoRaModulationInfo": {
       "type": "object",
       "properties": {
@@ -951,6 +1041,16 @@
           "type": "boolean",
           "format": "boolean",
           "description": "Polarization inversion."
+        }
+      }
+    },
+    "gwPlainFineTimestamp": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Full timestamp."
         }
       }
     },
@@ -976,10 +1076,68 @@
         }
       }
     },
-    "protobufEmpty": {
+    "protobufAny": {
       "type": "object",
-      "description": "service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
-      "title": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:"
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpcCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "httpCode": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "httpStatus": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "x-stream-definitions": {
+    "apiStreamDeviceEventLogsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/apiStreamDeviceEventLogsResponse"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of apiStreamDeviceEventLogsResponse"
+    },
+    "apiStreamDeviceFrameLogsResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/apiStreamDeviceFrameLogsResponse"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of apiStreamDeviceFrameLogsResponse"
     }
   }
 }
